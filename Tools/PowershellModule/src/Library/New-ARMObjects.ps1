@@ -128,11 +128,11 @@ function New-ARMObjects {
             $ApiManagementParameters = $Object.Parameters.Parameters
             $ApiManagement = Get-AzApiManagement -ResourceGroupName $ResourceGroup -Name $ApiManagementParameters.serviceName.value -ErrorVariable ErrorGet -ErrorAction SilentlyContinue
             if (!$ApiManagement) {
-                Write-Warning "Creating new Api Aanagement service. Name: $($ApiManagementParameters.serviceName.value)"
+                Write-Warning "Creating new Api Management service. Name: $($ApiManagementParameters.serviceName.value)"
                 Write-Warning 'This is a long-running action. It can take between 30 and 40 minutes to create and activate an API Management service.'
                 $ApiManagement = New-AzApiManagement -ResourceGroupName $ResourceGroup -Name $ApiManagementParameters.serviceName.value -Location $ApiManagementParameters.location.value -Organization $ApiManagementParameters.publisherName.value -AdminEmail $ApiManagementParameters.publisherEmail.value -Sku $ApiManagementParameters.sku.value -SystemAssignedIdentity -ErrorVariable DeployError
                 if ($DeployError) {
-                    Write-Error "Failed to create Api Aanagement service. Error: $DeployError"
+                    Write-Error "Failed to create Api Management service. Error: $DeployError"
                     return $false
                 }
             }

@@ -203,9 +203,16 @@ function New-ARMObjects {
             $RoleDefinitionId = "$($CosmosAccount.Id)/sqlRoleDefinitions/$RoleId"
             if ((Get-AzCosmosDBSqlRoleAssignment -ResourceGroupName $ResourceGroup -AccountName $CosmosAccountName).Where({ $_.PrincipalId -eq $FunctionApp.IdentityPrincipalId -and $_.RoleDefinitionId -eq $RoleDefinitionId }).Count -eq 0) {
                 Write-Verbose 'Assigning Cosmos DB Account contributor role'
-                $Result = New-AzCosmosDBSqlRoleAssignment -AccountName $CosmosAccountName -ResourceGroupName $ResourceGroup -RoleDefinitionId $RoleId -Scope '/' -PrincipalId $FunctionApp.IdentityPrincipalId -ErrorVariable ErrorNew
-                if ($ErrorNew) {
-                    Write-Error "Failed to assign Azure Function with Cosmos DB contributor role. Error: $ErrorNew"
+                $RoleAssignmentId = [Guid]::NewGuid().ToString()
+                $RoleAssignmentPayload = @{properties = 
+                    @{roleDefinitionId = $RoleDefinitionId
+                        scope          = $CosmosAccount.Id
+                        principalId    = $FunctionApp.IdentityPrincipalId
+                    }
+                } | ConvertTo-Json -Depth 3
+                $Result = Invoke-AzRestMethod -Method PUT -Path "$($CosmosAccount.Id)/sqlRoleAssignments/${RoleAssignmentId}?api-version=2024-05-15" -Payload $RoleAssignmentPayload -ErrorAction Stop
+                if ($Result.StatusCode -notin @(200, 201)) {
+                    Write-Error "Failed to assign Azure Function with Cosmos DB contributor role. Error: $($Result.Content)"
                     return $false
                 }
             }

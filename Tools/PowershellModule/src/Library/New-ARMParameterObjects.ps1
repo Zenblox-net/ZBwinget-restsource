@@ -174,8 +174,8 @@ function New-ARMParameterObjects {
             $AppConfigSku = 'Free'
             $KeyVaultSKU = 'Standard'
             $StorageAccountPerformance = 'Standard_LRS'
-            $AspSku = 'B1'
-            $CosmosDBAEnableFreeTier = $true
+            $AspSku = 'FC1'
+            $CosmosDBAEnableFreeTier = $false
             ## To enable Serverless then set CosmosDBACapatilities to "[{"name": ""EnableServerless""}]"
             $CosmosDBACapabilities = '[{"name": ""EnableServerless""}]'
             $CosmosDBAConsistency = 'ConsistentPrefix'

@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.singleton.1.6.0.schema.json
+# Small sample package: 7-Zip x64 (approximately 1.6 MB).
+PackageIdentifier: 7zip.7zip
+PackageVersion: '26.05'
+PackageLocale: en-US
+Publisher: Igor Pavlov
+PackageName: 7-Zip
+License: LGPL-2.1
+LicenseUrl: https://7-zip.org/license.txt
+ShortDescription: A file archiver with a high compression ratio.
+PackageUrl: https://7-zip.org/
+Moniker: 7zip
+Installers:
+  - Architecture: x64
+    InstallerType: exe
+    Scope: machine
+    InstallerUrl: https://github.com/ip7z/7zip/releases/download/26.05/7z2605-x64.exe
+    InstallerSha256: FD99E86F57D8F429EF5ED045BF98315AF962E2309B0F1BA87A147A44C71647D0
+    InstallerSwitches:
+      Silent: /S
+      SilentWithProgress: /S
+    ProductCode: 7-Zip
+ManifestType: singleton
+ManifestVersion: 1.6.0

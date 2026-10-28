@@ -3,20 +3,15 @@
 $ErrorActionPreference = 'Stop'
 $settings = Import-PowerShellDataFile (Join-Path $PSScriptRoot 'deploy-settings.psd1')
 
-foreach ($moduleName in @('Az', 'Microsoft.WinGet.RestSource')) {
+foreach ($moduleName in @('Az')) {
     if (-not (Get-Module -ListAvailable -Name $moduleName)) {
         Install-Module -Name $moduleName -Scope CurrentUser -AllowClobber
     }
 }
 
 Import-Module Az.Accounts
-Import-Module Microsoft.WinGet.RestSource
-
-& (Get-Module Microsoft.WinGet.RestSource) {
-    param($helperPath)
-    . $helperPath
-    Set-Item Function:script:New-ARMObjects -Value ${function:New-ARMObjects}
-} (Join-Path $PSScriptRoot 'Tools/PowershellModule/src/Library/New-ARMObjects.ps1')
+& (Join-Path $PSScriptRoot 'Tools/PowershellModule/build-local-module.ps1')
+Import-Module (Join-Path $PSScriptRoot 'artifacts/Microsoft.WinGet.RestSource/Microsoft.WinGet.RestSource.psd1') -Force
 
 Connect-AzAccount -Tenant $settings.TenantId -Subscription $settings.SubscriptionId | Out-Null
 $context = Set-AzContext -Tenant $settings.TenantId -SubscriptionId $settings.SubscriptionId

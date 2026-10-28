@@ -177,7 +177,7 @@ function New-ARMParameterObjects {
             $AspSku = 'B1'
             $CosmosDBAEnableFreeTier = $true
             ## To enable Serverless then set CosmosDBACapatilities to "[{"name": ""EnableServerless""}]"
-            $CosmosDBACapabilities = '[]'
+            $CosmosDBACapabilities = '[{"name": ""EnableServerless""}]'
             $CosmosDBAConsistency = 'ConsistentPrefix'
             $CosmosDBALocations = @(
                 @{
@@ -186,7 +186,7 @@ function New-ARMParameterObjects {
                     isZoneRedundant  = $false
                 }
             )
-            $ApiManagementSku = 'Developer'
+            $ApiManagementSku = 'Consumption'
         }
         'Basic' {
             $AppConfigSku = 'Standard'

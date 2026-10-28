@@ -188,6 +188,56 @@ function New-ARMParameterObjects {
             )
             $ApiManagementSku = 'Consumption'
         }
+        'Basic' {
+            $AppConfigSku = 'Standard'
+            $KeyVaultSKU = 'Standard'
+            $StorageAccountPerformance = 'Standard_GRS'
+            $AspSku = 'S1'
+            $CosmosDBAEnableFreeTier = $false
+            ## To enable Serverless then set CosmosDBACapatilities to "[{"name": ""EnableServerless""}]"
+            $CosmosDBACapabilities = '[]'
+            $CosmosDBAConsistency = 'Session'
+            $CosmosDBALocations = @(
+                @{
+                    locationName     = $PrimaryRegionName
+                    failoverPriority = 0
+                    isZoneRedundant  = $false
+                }
+            )
+            if ($SecondaryRegionName) {
+                $CosmosDBALocations += @{
+                    locationName     = $SecondaryRegionName
+                    failoverPriority = 1
+                    isZoneRedundant  = $false
+                }
+            }
+            $ApiManagementSku = 'Basic'
+        }
+        'Enhanced' {
+            $AppConfigSku = 'Standard'
+            $KeyVaultSKU = 'Standard'
+            $StorageAccountPerformance = 'Standard_GRS'
+            $AspSku = 'P1V2'
+            $CosmosDBAEnableFreeTier = $false
+            ## To enable Serverless then set CosmosDBACapatilities to "[{"name": ""EnableServerless""}]"
+            $CosmosDBACapabilities = '[]'
+            $CosmosDBAConsistency = 'Session'
+            $CosmosDBALocations = @(
+                @{
+                    locationName     = $PrimaryRegionName
+                    failoverPriority = 0
+                    isZoneRedundant  = $false
+                }
+            )
+            if ($SecondaryRegionName) {
+                $CosmosDBALocations += @{
+                    locationName     = $SecondaryRegionName
+                    failoverPriority = 1
+                    isZoneRedundant  = $false
+                }
+            }
+            $ApiManagementSku = 'Standard'
+        }
         
     }
 
@@ -433,7 +483,7 @@ function New-ARMParameterObjects {
                     serviceName               = @{ value = $ApiManagementName }
                     publisherEmail            = @{ value = $PublisherEmail }
                     publisherName             = @{ value = $PublisherName }
-                    sku                       = @{ value = 'XXX' }
+                    sku                       = @{ value = $ApiManagementSku }
                     location                  = @{ value = $Region }
                     keyVaultServiceUri        = @{ value = $keyVaultServiceUri }
                     backendUrls               = @{ value = @() }  # Value to be populated after Azure Function is created

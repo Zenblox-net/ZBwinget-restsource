@@ -12,6 +12,12 @@ foreach ($moduleName in @('Az', 'Microsoft.WinGet.RestSource')) {
 Import-Module Az.Accounts
 Import-Module Microsoft.WinGet.RestSource
 
+& (Get-Module Microsoft.WinGet.RestSource) {
+    param($helperPath)
+    . $helperPath
+    Set-Item Function:script:New-ARMObjects -Value ${function:New-ARMObjects}
+} (Join-Path $PSScriptRoot 'Tools/PowershellModule/src/Library/New-ARMObjects.ps1')
+
 Connect-AzAccount -Tenant $settings.TenantId -Subscription $settings.SubscriptionId | Out-Null
 $context = Set-AzContext -Tenant $settings.TenantId -SubscriptionId $settings.SubscriptionId
 if ($context.Tenant.Id -ne $settings.TenantId -or $context.Subscription.Id -ne $settings.SubscriptionId) {
@@ -21,6 +27,8 @@ if ($context.Tenant.Id -ne $settings.TenantId -or $context.Subscription.Id -ne $
 $sourceSettings = $settings.Clone()
 $sourceSettings.Remove('TenantId')
 $sourceSettings.Remove('SubscriptionId')
+$resourceGroupName = $settings.Name -replace '[^a-zA-Z0-9-]', ''
+$sourceSettings['ResourceGroup'] = "$resourceGroupName-rg"
 
 foreach ($pathSetting in @('TemplateFolderPath', 'ParameterOutputPath', 'RestSourcePath')) {
     if ([string]::IsNullOrWhiteSpace($sourceSettings[$pathSetting])) {

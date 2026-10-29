@@ -44,6 +44,11 @@ namespace Microsoft.WindowsPackageManager.Rest.Diagnostics
         {
             _ = loggingBuilder ?? throw new ArgumentNullException(nameof(loggingBuilder));
 
+            if (!OperatingSystem.IsWindows())
+            {
+                return;
+            }
+
             loggingBuilder.AddOpenTelemetry(loggingOptions =>
             {
                 loggingOptions.AddGenevaLogExporter(exporterOptions =>

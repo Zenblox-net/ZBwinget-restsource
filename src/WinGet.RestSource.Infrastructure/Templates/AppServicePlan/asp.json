@@ -34,17 +34,18 @@
     "variables": {},
     "resources": [
         {
-            "apiVersion": "2018-02-01",
+            "apiVersion": "2024-04-01",
             "name": "[parameters('aspName')]",
             "type": "Microsoft.Web/serverfarms",
             "location": "[parameters('location')]",
+            "kind": "functionapp",
             "properties": {
-                "name": "[parameters('aspName')]",
-                "numberOfWorkers": "[parameters('numberOfWorkers')]",
-                "reserved": false
+                "reserved": true,
+                "zoneRedundant": false
             },
             "sku": {
-                "Name": "[parameters('skuCode')]"
+                "name": "[parameters('skuCode')]",
+                "tier": "FlexConsumption"
             }
         }
     ],

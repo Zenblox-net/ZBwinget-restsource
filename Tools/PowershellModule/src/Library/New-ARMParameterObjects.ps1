@@ -6,6 +6,7 @@ function New-ARMParameterObjects {
     Creates the parameter files, and an object which points to both the created parameter and template files.
 
     .DESCRIPTION
+
     Creates a new PowerShell object that contains the Azure Resource type, name, and parameter values. Once created it'll
     output the parameter files into a *.json file that can be used in combination with with template files to build Azure
     resources required for hosting a Windows Package Manager REST source. Returns the PowerShell object.
@@ -74,6 +75,10 @@ function New-ARMParameterObjects {
     $AspName = 'asp-' + $Name -replace '[^a-zA-Z0-9-]', ''
     $CDBAccountName = 'cosmos-' + $Name.ToLower() -replace '[^a-z0-9-]', ''
     $FunctionName = 'func-' + $Name -replace '[^a-zA-Z0-9-]', ''
+    $FunctionDeploymentContainerName = 'app-package-' + ($FunctionName.ToLowerInvariant() -replace '[^a-z0-9-]', '').Trim('-')
+    if ($FunctionDeploymentContainerName.Length -gt 63) {
+        $FunctionDeploymentContainerName = $FunctionDeploymentContainerName.Substring(0, 63).TrimEnd('-')
+    }
     $AppConfigName = 'appcs-' + $Name -replace '[^a-zA-Z0-9-]', ''
     $ApiManagementName = 'apim-' + $Name -replace '[^a-zA-Z0-9-]', ''
     $ServerIdentifier = 'WinGetRestSource-' + $Name -replace '[^a-zA-Z0-9-]', ''
@@ -241,6 +246,8 @@ function New-ARMParameterObjects {
         
     }
 
+    $ApiManagementSkuCount = if ($ApiManagementSku -eq 'Consumption') { 0 } else { 1 }
+
     ## This is specific to the JSON file creation
     $JSONContentVersion = '1.0.0.0'
     $JSONSchema = 'https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#'
@@ -331,6 +338,12 @@ function New-ARMParameterObjects {
                     location           = @{ value = $Region }
                     storageAccountName = @{ value = $StorageAccountName }
                     accountType        = @{ value = $StorageAccountPerformance }
+                    containerNames     = @{
+                        value = @(
+                            @{ name = 'default'; publicAccess = 'None' }
+                            @{ name = $FunctionDeploymentContainerName; publicAccess = 'None' }
+                        )
+                    }
                 }
             }
         },
@@ -362,7 +375,13 @@ function New-ARMParameterObjects {
                     location          = @{ value = $Region }
                     enableFreeTier    = @{ value = $CosmosDBAEnableFreeTier }
                     consistencyPolicy = @{
-                        value = @{
+                        containerNames = @{
+                            value = @(
+                                @{ name = 'default'; publicAccess = 'None' }
+                                @{ name = $FunctionDeploymentContainerName; publicAccess = 'None' }
+                            )
+                        }
+                        value          = @{
                             defaultConsistencyLevel = $CosmosDBAConsistency
                             maxIntervalInSeconds    = 5
                             maxStalenessPrefix      = 100
@@ -449,25 +468,27 @@ function New-ARMParameterObjects {
                 '$Schema'      = $JSONSchema
                 contentVersion = $JSONContentVersion
                 Parameters     = @{
-                    location                      = @{ value = $Region }   # Azure hosting location
-                    cosmosDatabase                = @{ value = $CDBDatabaseName }   # Cosmos Database Name
-                    cosmosContainer               = @{ value = $CDBContainerName }   # Cosmos Container Name
-                    serverIdentifier              = @{ value = $ServerIdentifier }   # Azure Function Server Identifier
-                    functionName                  = @{ value = $FunctionName }   # Azure Function Name
-                    appServiceName                = @{ value = $aspName }   # Azure App Service Name
-                    keyVaultServiceUri            = @{ value = $keyVaultServiceUri }   # Azure Keyvault Uri
-                    blobStorageServiceUri         = @{ value = $blobStorageServiceUri }   # Azure Blob Storage Uri
-                    queueStorageServiceUri        = @{ value = $queueStorageServiceUri }   # Azure Queue Storage Uri
-                    tableStorageServiceUri        = @{ value = $tableStorageServiceUri }   # Azure Table Storage Uri
-                    appInsightName                = @{ value = $AppInsightsName }   # Azure App Insights Name
-                    manifestCacheEndpoint         = @{ value = $manifestCacheEndpoint }   # Not suported
-                    monitoringTenant              = @{ value = $monitoringTenant }   # Not suported
-                    monitoringRole                = @{ value = $monitoringRole }   # Not suported
-                    monitoringMetricsAccount      = @{ value = $monitoringMetricsAccount }   # Not suported
-                    runFromPackageUrl             = @{ value = $RunFromPackageUrl }   # Not suported
-                    serverAuthenticationType      = @{ value = $ServerAuthenticationType }   # Server authentication type
-                    microsoftEntraIdResource      = @{ value = $MicrosoftEntraIdResource }   # Microsoft Entra Id Resource
-                    microsoftEntraIdResourceScope = @{ value = $MicrosoftEntraIdResourceScope }  # Microsoft Entra Id Resource Scope
+                    location                        = @{ value = $Region }   # Azure hosting location
+                    cosmosDatabase                  = @{ value = $CDBDatabaseName }   # Cosmos Database Name
+                    cosmosContainer                 = @{ value = $CDBContainerName }   # Cosmos Container Name
+                    serverIdentifier                = @{ value = $ServerIdentifier }   # Azure Function Server Identifier
+                    functionName                    = @{ value = $FunctionName }   # Azure Function Name
+                    storageAccountName              = @{ value = $StorageAccountName }
+                    functionDeploymentContainerName = @{ value = $FunctionDeploymentContainerName }
+                    appServiceName                  = @{ value = $aspName }   # Azure App Service Name
+                    keyVaultServiceUri              = @{ value = $keyVaultServiceUri }   # Azure Keyvault Uri
+                    blobStorageServiceUri           = @{ value = $blobStorageServiceUri }   # Azure Blob Storage Uri
+                    queueStorageServiceUri          = @{ value = $queueStorageServiceUri }   # Azure Queue Storage Uri
+                    tableStorageServiceUri          = @{ value = $tableStorageServiceUri }   # Azure Table Storage Uri
+                    appInsightName                  = @{ value = $AppInsightsName }   # Azure App Insights Name
+                    manifestCacheEndpoint           = @{ value = $manifestCacheEndpoint }   # Not suported
+                    monitoringTenant                = @{ value = $monitoringTenant }   # Not suported
+                    monitoringRole                  = @{ value = $monitoringRole }   # Not suported
+                    monitoringMetricsAccount        = @{ value = $monitoringMetricsAccount }   # Not suported
+                    runFromPackageUrl               = @{ value = $RunFromPackageUrl }   # Not suported
+                    serverAuthenticationType        = @{ value = $ServerAuthenticationType }   # Server authentication type
+                    microsoftEntraIdResource        = @{ value = $MicrosoftEntraIdResource }   # Microsoft Entra Id Resource
+                    microsoftEntraIdResourceScope   = @{ value = $MicrosoftEntraIdResourceScope }  # Microsoft Entra Id Resource Scope
                 }
             }
         },
@@ -484,6 +505,7 @@ function New-ARMParameterObjects {
                     publisherEmail            = @{ value = $PublisherEmail }
                     publisherName             = @{ value = $PublisherName }
                     sku                       = @{ value = $ApiManagementSku }
+                    skuCount                  = @{ value = $ApiManagementSkuCount }
                     location                  = @{ value = $Region }
                     keyVaultServiceUri        = @{ value = $keyVaultServiceUri }
                     backendUrls               = @{ value = @() }  # Value to be populated after Azure Function is created

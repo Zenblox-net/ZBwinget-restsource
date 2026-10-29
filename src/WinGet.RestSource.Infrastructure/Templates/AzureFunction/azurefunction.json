@@ -8,6 +8,39 @@
                 "description": "Azure Function Name"
             }
         },
+        "storageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage account used by the Function app"
+            }
+        },
+        "functionDeploymentContainerName": {
+            "type": "string",
+            "metadata": {
+                "description": "Private Blob container used for Flex Consumption package deployment"
+            }
+        },
+        "maximumInstanceCount": {
+            "type": "int",
+            "defaultValue": 10,
+            "minValue": 1,
+            "maxValue": 1000,
+            "metadata": {
+                "description": "Maximum on-demand Flex Consumption instances"
+            }
+        },
+        "instanceMemoryMB": {
+            "type": "int",
+            "defaultValue": 2048,
+            "allowedValues": [
+                512,
+                2048,
+                4096
+            ],
+            "metadata": {
+                "description": "Memory allocated per Flex Consumption instance"
+            }
+        },
         "serverIdentifier": {
             "type": "string",
             "metadata": {
@@ -211,71 +244,134 @@
     "resources": [
         {
             "type": "Microsoft.Web/sites",
-            "apiVersion": "2018-11-01",
+            "apiVersion": "2024-04-01",
             "name": "[parameters('functionName')]",
             "location": "[parameters('location')]",
-            "kind": "functionapp",
+            "kind": "functionapp,linux",
             "identity": {
                 "type": "SystemAssigned"
             },
             "properties": {
-                "name": "[parameters('functionName')]",
                 "serverFarmId": "[variables('appServiceResourceId')]",
-                "clientAffinityEnabled": "[parameters('enableClientAfinity')]",
+                "functionAppConfig": {
+                    "deployment": {
+                        "storage": {
+                            "type": "blobContainer",
+                            "value": "[concat(parameters('blobStorageServiceUri'), '/', parameters('functionDeploymentContainerName'))]",
+                            "authentication": {
+                                "type": "SystemAssignedIdentity"
+                            }
+                        }
+                    },
+                    "scaleAndConcurrency": {
+                        "maximumInstanceCount": "[parameters('maximumInstanceCount')]",
+                        "instanceMemoryMB": "[parameters('instanceMemoryMB')]"
+                    },
+                    "runtime": {
+                        "name": "dotnet-isolated",
+                        "version": "10.0"
+                    }
+                },
                 "siteConfig": {
-                    "alwaysOn": "[parameters('enableAlwaysOn')]",
-                    "minTlsVersion": "[parameters('minimumTlsVersion')]"
+                    "minTlsVersion": "[parameters('minimumTlsVersion')]",
+                    "cors": "[parameters('cors')]",
+                    "appSettings": [
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(variables('appInsightResourceId'), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference(variables('appInsightResourceId'), '2020-02-02').ConnectionString]"
+                        },
+                        {
+                            "name": "AzFuncRestSourceEndpoint",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', variables('kv_secreturi_path'), variables('kv_restSourceApiEndpoint_SecretName'), '/)')]"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage__accountName",
+                            "value": "[parameters('storageAccountName')]"
+                        },
+                        {
+                            "name": "CosmosAccountEndpoint",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', variables('kv_secreturi_path'), variables('kv_cosmosAccountEndpoint_secretName'), '/)')]"
+                        },
+                        {
+                            "name": "CosmosContainer",
+                            "value": "[parameters('cosmosContainer')]"
+                        },
+                        {
+                            "name": "CosmosDatabase",
+                            "value": "[parameters('cosmosDatabase')]"
+                        },
+                        {
+                            "name": "FunctionHostKey",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', variables('kv_secreturi_path'), variables('kv_functionHostKey_SecretName'), '/)')]"
+                        },
+                        {
+                            "name": "FunctionName",
+                            "value": "[parameters('functionName')]"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "[parameters('functionExtensionVersion')]"
+                        },
+                        {
+                            "name": "ManifestCacheEndpoint",
+                            "value": "[parameters('manifestCacheEndpoint')]"
+                        },
+                        {
+                            "name": "ServerIdentifier",
+                            "value": "[parameters('serverIdentifier')]"
+                        },
+                        {
+                            "name": "WEBSITE_FIRST_PARTY_ID",
+                            "value": "AntMDS"
+                        },
+                        {
+                            "name": "WEBSITE_LOAD_CERTIFICATES",
+                            "value": "[parameters('website_load_certificates')]"
+                        },
+                        {
+                            "name": "WinGet__AppConfig__PrimaryEndpoint",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', variables('kv_secreturi_path'), variables('kv_appConfigPrimary_SecretName'), '/)')]"
+                        },
+                        {
+                            "name": "WinGet__AppConfig__SecondaryEndpoint",
+                            "value": "[concat('@Microsoft.KeyVault(SecretUri=', variables('kv_secreturi_path'), variables('kv_appConfigSecondary_SecretName'), '/)')]"
+                        },
+                        {
+                            "name": "WinGetRest__SubscriptionId",
+                            "value": "[parameters('appServiceSubscription')]"
+                        },
+                        {
+                            "name": "WinGetRest__Telemetry__Metrics",
+                            "value": "[parameters('monitoringMetricsAccount')]"
+                        },
+                        {
+                            "name": "WinGetRest__Telemetry__Role",
+                            "value": "[parameters('monitoringRole')]"
+                        },
+                        {
+                            "name": "WinGetRest__Telemetry__Tenant",
+                            "value": "[parameters('monitoringTenant')]"
+                        },
+                        {
+                            "name": "ServerAuthenticationType",
+                            "value": "[parameters('serverAuthenticationType')]"
+                        },
+                        {
+                            "name": "MicrosoftEntraIdResource",
+                            "value": "[parameters('microsoftEntraIdResource')]"
+                        },
+                        {
+                            "name": "MicrosoftEntraIdResourceScope",
+                            "value": "[parameters('microsoftEntraIdResourceScope')]"
+                        }
+                    ]
                 },
                 "httpsOnly": true
             },
-            "resources": [
-                {
-                    "apiVersion": "2018-11-01",
-                    "type": "config",
-                    "name": "appsettings",
-                    "dependsOn": [
-                        "[concat('Microsoft.Web/Sites/', parameters('functionName'))]"
-                    ],
-                    "properties": {
-                        "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(variables('appInsightResourceId'), '2015-05-01').InstrumentationKey]",
-                        "AzFuncRestSourceEndpoint": "[concat('@Microsoft.KeyVault(SecretUri=', variables('kv_secreturi_path'), variables('kv_restSourceApiEndpoint_SecretName'), '/)')]",
-                        "AzureWebJobsStorage__blobServiceUri": "[parameters('blobStorageServiceUri')]",
-                        "AzureWebJobsStorage__queueServiceUri": "[parameters('queueStorageServiceUri')]",
-                        "AzureWebJobsStorage__tableServiceUri": "[parameters('tableStorageServiceUri')]",
-                        "CosmosAccountEndpoint": "[concat('@Microsoft.KeyVault(SecretUri=', variables('kv_secreturi_path'), variables('kv_cosmosAccountEndpoint_secretName'), '/)')]",
-                        "CosmosContainer": "[parameters('cosmosContainer')]",
-                        "CosmosDatabase": "[parameters('cosmosDatabase')]",
-                        "FunctionHostKey": "[concat('@Microsoft.KeyVault(SecretUri=', variables('kv_secreturi_path'), variables('kv_functionHostKey_SecretName'), '/)')]",
-                        "FunctionName": "[parameters('functionName')]",
-                        "FUNCTIONS_EXTENSION_VERSION": "[parameters('functionExtensionVersion')]",
-                        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-                        "ManifestCacheEndpoint": "[parameters('manifestCacheEndpoint')]",
-                        "ServerIdentifier": "[parameters('serverIdentifier')]",
-                        "WEBSITE_FIRST_PARTY_ID": "AntMDS",
-                        "WEBSITE_LOAD_CERTIFICATES": "[parameters('website_load_certificates')]",
-                        "WinGet:AppConfig:PrimaryEndpoint": "[concat('@Microsoft.KeyVault(SecretUri=', variables('kv_secreturi_path'), variables('kv_appConfigPrimary_SecretName'), '/)')]",
-                        "WinGet:AppConfig:SecondaryEndpoint": "[concat('@Microsoft.KeyVault(SecretUri=', variables('kv_secreturi_path'), variables('kv_appConfigSecondary_SecretName'), '/)')]",
-                        "WinGetRest::SubscriptionId": "[parameters('appServiceSubscription')]",
-                        "WinGetRest:Telemetry:Metrics": "[parameters('monitoringMetricsAccount')]",
-                        "WinGetRest:Telemetry:Role": "[parameters('monitoringRole')]",
-                        "WinGetRest:Telemetry:Tenant": "[parameters('monitoringTenant')]",
-                        "ServerAuthenticationType": "[parameters('serverAuthenticationType')]",
-                        "MicrosoftEntraIdResource": "[parameters('microsoftEntraIdResource')]",
-                        "MicrosoftEntraIdResourceScope": "[parameters('microsoftEntraIdResourceScope')]"
-                    }
-                },
-                {
-                    "apiVersion": "2021-03-01",
-                    "type": "config",
-                    "name": "web",
-                    "dependsOn": [
-                        "[concat('Microsoft.Web/Sites/', parameters('functionName'))]"
-                    ],
-                    "properties": {
-                        "cors": "[parameters('cors')]"
-                    }
-                }
-            ]
         }
     ],
     "outputs": {}

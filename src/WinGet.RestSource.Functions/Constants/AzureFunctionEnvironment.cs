@@ -21,17 +21,17 @@ namespace Microsoft.WinGet.RestSource.Functions.Constants
         /// <summary>
         /// Monitor Metrics Account Variable.
         /// </summary>
-        private const string MonitorMetricsAccountVariable = "WinGetRest:Telemetry:Metrics";
+        private const string MonitorMetricsAccountVariable = "WinGetRest__Telemetry__Metrics";
 
         /// <summary>
         /// Monitor Role Variable.
         /// </summary>
-        private const string MonitorRoleVariable = "WinGetRest:Telemetry:Role";
+        private const string MonitorRoleVariable = "WinGetRest__Telemetry__Role";
 
         /// <summary>
         /// Monitor Tenant Variable.
         /// </summary>
-        private const string MonitorTenantVariable = "WinGetRest:Telemetry:Tenant";
+        private const string MonitorTenantVariable = "WinGetRest__Telemetry__Tenant";
 
         /// <summary>
         /// Server Identifier Variable.

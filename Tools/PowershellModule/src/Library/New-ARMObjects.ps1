@@ -211,13 +211,37 @@ function New-ARMObjects {
                     }
                 } | ConvertTo-Json -Depth 3
                 $Result = Invoke-AzRestMethod -Method PUT -Path "$($CosmosAccount.Id)/sqlRoleAssignments/${RoleAssignmentId}?api-version=2024-05-15" -Payload $RoleAssignmentPayload -ErrorAction Stop
-                if ($Result.StatusCode -notin @(200, 201)) {
+                if ($Result.StatusCode -notin @(200, 201, 202)) {
                     Write-Error "Failed to assign Azure Function with Cosmos DB contributor role. Error: $($Result.Content)"
                     return $false
                 }
             }
 
-            ## Create Function app key and also add to keyvault
+            Write-Information -MessageData 'Publishing function files to the Azure Function.'
+            $AzureSubscriptionId = (Get-AzContext).Subscription.Id
+            & az account set --subscription $AzureSubscriptionId --only-show-errors
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error 'Azure CLI could not select the active Azure PowerShell subscription.'
+                return $false
+            }
+
+            $DeployOutput = & az functionapp deployment source config-zip --src $RestSourcePath --name $FunctionName --resource-group $ResourceGroup --subscription $AzureSubscriptionId --only-show-errors --output none 2>&1
+            $DeployExitCode = $LASTEXITCODE
+
+            ## Verifies that no error occured when publishing the Function App
+            if ($DeployExitCode -ne 0) {
+                $ErrReturnObject = @{
+                    DeployError  = $DeployOutput
+                    DeployResult = $DeployExitCode
+                }
+
+                Write-Error "Failed to publish the Function App. Error: $DeployOutput" -TargetObject $ErrReturnObject
+                return $false
+            }
+
+            Write-Information 'Function package deployed.'
+
+            ## Create Function app key after the Flex host package is available, then store it in Key Vault.
             $NewFunctionKeyValue = New-FunctionAppKey
             $Result = Invoke-AzRestMethod -Path "$FunctionAppId/host/default/functionKeys/WinGetRestSourceAccess?api-version=2024-04-01" -Method PUT -Payload (@{properties = @{name = 'WinGetRestSourceAccess'; value = $NewFunctionKeyValue } } | ConvertTo-Json -Depth 8)
             if ($Result.StatusCode -ne 200 -and $Result.StatusCode -ne 201) {
@@ -229,27 +253,6 @@ function New-ARMObjects {
             $Result = Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name $AzureFunctionHostKeyName -SecretValue (Get-SecureString($NewFunctionKeyValue)) -ErrorVariable ErrorSet
             if ($ErrorSet) {
                 Write-Error "Failed to set keyvault secret. Name: $AzureFunctionHostKeyName Error: $ErrorSet"
-                return $false
-            }
-
-            Write-Information -MessageData 'Publishing function files to the Azure Function.'
-            $DeployResult = Publish-AzWebApp -ArchivePath $RestSourcePath -ResourceGroupName $ResourceGroup -Name $FunctionName -Force -ErrorVariable DeployError
-
-            ## Verifies that no error occured when publishing the Function App
-            if ($DeployError -or !$DeployResult) {
-                $ErrReturnObject = @{
-                    DeployError  = $DeployError
-                    DeployResult = $DeployResult
-                }
-
-                Write-Error "Failed to publishing the Function App. Error: $DeployError" -TargetObject $ErrReturnObject
-                return $false
-            }
-
-            ## Restart the Function App
-            Write-Verbose 'Restarting Azure Function.'
-            if (!$(Restart-AzFunctionApp -Name $FunctionName -ResourceGroupName $ResourceGroup -Force -PassThru)) {
-                Write-Error "Failed to restart Function App. Name: $FunctionName"
                 return $false
             }
         }

@@ -28,8 +28,8 @@ namespace Microsoft.WinGet.RestSource.AppConfig
 
         private static readonly Lazy<WinGetAppConfig> LazyInstance = new Lazy<WinGetAppConfig>(() => new WinGetAppConfig());
 
-        private readonly string appConfigPrimaryEndpoint = Environment.GetEnvironmentVariable("WinGet:AppConfig:PrimaryEndpoint");
-        private readonly string appConfigSecondaryEndpoint = Environment.GetEnvironmentVariable("WinGet:AppConfig:SecondaryEndpoint");
+        private readonly string appConfigPrimaryEndpoint = Environment.GetEnvironmentVariable("WinGet__AppConfig__PrimaryEndpoint");
+        private readonly string appConfigSecondaryEndpoint = Environment.GetEnvironmentVariable("WinGet__AppConfig__SecondaryEndpoint");
 
         private readonly Dictionary<FeatureFlag, bool> defaultValue = new Dictionary<FeatureFlag, bool>();
         private readonly string failedReason;

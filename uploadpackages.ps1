@@ -1,14 +1,16 @@
 ﻿
-Install-Module -Name Microsoft.WinGet.RestSource -AllowPrerelease
+$moduleName = 'Microsoft.WinGet.RestSource'
+if (-not (Get-Module -Name $moduleName)) {
+    Install-Module -Name $moduleName -AllowPrerelease
+    Import-Module -Name $moduleName
+}
 
 Connect-AzAccount
-
-Import-Module Microsoft.WinGet.RestSource
 
 $manifestPath = '.\example.manifest.yaml'
 winget validate $manifestPath
 
-Add-WinGetManifest -SubscriptionName 'Zenme Azure 1' -FunctionName 'func-jpvwinget3' -Path $manifestPath
+Add-WinGetManifest -SubscriptionName 'Zenme Azure 1' -FunctionName 'func-jpvwinget8' -Path $manifestPath
 # =======
 
 # Get-AzFunctionApp | Select-Object Name, ResourceGroupName

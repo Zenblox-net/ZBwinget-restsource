@@ -375,13 +375,7 @@ function New-ARMParameterObjects {
                     location          = @{ value = $Region }
                     enableFreeTier    = @{ value = $CosmosDBAEnableFreeTier }
                     consistencyPolicy = @{
-                        containerNames = @{
-                            value = @(
-                                @{ name = 'default'; publicAccess = 'None' }
-                                @{ name = $FunctionDeploymentContainerName; publicAccess = 'None' }
-                            )
-                        }
-                        value          = @{
+                        value = @{
                             defaultConsistencyLevel = $CosmosDBAConsistency
                             maxIntervalInSeconds    = 5
                             maxStalenessPrefix      = 100

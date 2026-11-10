@@ -8,7 +8,9 @@
     RestSourcePath                           = $null
     ImplementationPerformance                = 'Developer'
     RestSourceAuthentication                 = 'MicrosoftEntraId'
-    CreateNewMicrosoftEntraIdAppRegistration = $true
+    CreateNewMicrosoftEntraIdAppRegistration = $false
+    MicrosoftEntraIdResource                 = '4706cbd0-b206-4e8b-ae56-7b425779b08e' #If false for CreateNewMicrosoftEntraIdAppRegistration then specify the resourceid here.
+    MicrosoftEntraIdResourceScope            = 'user_impersonation'
     PublisherName                            = 'Zenblox'
     PublisherEmail                           = 'info@zenblox.net'
     ShowConnectionInstructions               = $true

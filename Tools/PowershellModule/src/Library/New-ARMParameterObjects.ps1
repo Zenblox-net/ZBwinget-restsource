@@ -181,8 +181,10 @@ function New-ARMParameterObjects {
             $StorageAccountPerformance = 'Standard_LRS'
             $AspSku = 'FC1'
             $CosmosDBAEnableFreeTier = $false
-            ## To enable Serverless then set CosmosDBACapatilities to "[{"name": ""EnableServerless""}]"
-            $CosmosDBACapabilities = '[{"name": ""EnableServerless""}]'
+            ## Serverless capacity mode: billed per request, no provisioned throughput.
+            $CosmosDBACapabilities = @(@{ name = 'EnableServerless' })
+            ## Serverless databases cannot have throughput set at creation.
+            $CosmosDBDatabaseOptions = @{}
             $CosmosDBAConsistency = 'ConsistentPrefix'
             $CosmosDBALocations = @(
                 @{
@@ -199,8 +201,8 @@ function New-ARMParameterObjects {
             $StorageAccountPerformance = 'Standard_GRS'
             $AspSku = 'S1'
             $CosmosDBAEnableFreeTier = $false
-            ## To enable Serverless then set CosmosDBACapatilities to "[{"name": ""EnableServerless""}]"
-            $CosmosDBACapabilities = '[]'
+            $CosmosDBACapabilities = @()
+            $CosmosDBDatabaseOptions = @{ autoscaleSettings = @{ maxThroughput = 4000 } }
             $CosmosDBAConsistency = 'Session'
             $CosmosDBALocations = @(
                 @{
@@ -224,8 +226,8 @@ function New-ARMParameterObjects {
             $StorageAccountPerformance = 'Standard_GRS'
             $AspSku = 'P1V2'
             $CosmosDBAEnableFreeTier = $false
-            ## To enable Serverless then set CosmosDBACapatilities to "[{"name": ""EnableServerless""}]"
-            $CosmosDBACapabilities = '[]'
+            $CosmosDBACapabilities = @()
+            $CosmosDBDatabaseOptions = @{ autoscaleSettings = @{ maxThroughput = 4000 } }
             $CosmosDBAConsistency = 'Session'
             $CosmosDBALocations = @(
                 @{
@@ -373,7 +375,9 @@ function New-ARMParameterObjects {
                 Parameters     = @{
                     name              = @{ value = $CDBAccountName }
                     location          = @{ value = $Region }
-                    enableFreeTier    = @{ value = $CosmosDBAEnableFreeTier }
+                    enableFreeTier               = @{ value = $CosmosDBAEnableFreeTier }
+                    capabilities                 = @{ value = $CosmosDBACapabilities }
+                    enableMultipleWriteLocations = @{ value = $false }
                     consistencyPolicy = @{
                         value = @{
                             defaultConsistencyLevel = $CosmosDBAConsistency
@@ -405,13 +409,7 @@ function New-ARMParameterObjects {
                 Parameters     = @{
                     cosmosName = @{ value = $CDBAccountName }
                     sqlname    = @{ value = $CDBDatabaseName }
-                    options    = @{
-                        Value = @{
-                            autoscaleSettings = @{
-                                maxThroughput = 4000
-                            }
-                        }
-                    }
+                    options    = @{ Value = $CosmosDBDatabaseOptions }
                 }
             }
         },

@@ -114,7 +114,7 @@ function New-WinGetSource {
     )
 
     if ($ImplementationPerformance -eq 'Developer') {
-        Write-Warning "The ""Developer"" build creates the Azure Cosmos DB Account with the ""Free-tier"" option selected which offset the total cost. Only 1 Cosmos DB Account per tenant can make use of this tier.`n"
+        Write-Warning "The ""Developer"" build creates the Azure Cosmos DB Account in ""Serverless"" capacity mode: no provisioned throughput, billed only for the request units and storage consumed."
     }
 
     $TemplateFolderPath = [System.IO.Path]::GetFullPath($TemplateFolderPath, $pwd.Path)

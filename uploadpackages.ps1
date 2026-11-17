@@ -10,8 +10,11 @@ Connect-AzAccount
 $manifestPath = '.\example.manifest.yaml'
 winget validate $manifestPath
 
-Add-WinGetManifest -SubscriptionName 'Zenme Azure 1' -FunctionName 'func-jpvwinget8' -Path $manifestPath
+Add-WinGetManifest -SubscriptionName 'Zenme Azure 1' -FunctionName 'func-pawwinget-tm1' -Path $manifestPath
 # =======
+# Usage
+# winget source add --name "ZenmePrivate" --arg "https://func-pawwinget-tm1.azurewebsites.net/api" --type "Microsoft.Rest"
+
 
 # Get-AzFunctionApp | Select-Object Name, ResourceGroupName
  

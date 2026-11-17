@@ -14,7 +14,7 @@ Installers:
   - Architecture: x64
     InstallerType: exe
     Scope: machine
-    InstallerUrl: https://github.com/ip7z/7zip/releases/download/26.05/7z2605-x64.exe
+    InstallerUrl: https://artifact-keeper.jollywave-198ac8ae.southafricanorth.azurecontainerapps.io/api/v1/repositories/mc-test-repo/download/7z2605-x64.exe
     InstallerSha256: FD99E86F57D8F429EF5ED045BF98315AF962E2309B0F1BA87A147A44C71647D0
     InstallerSwitches:
       Silent: /S

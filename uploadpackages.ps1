@@ -10,17 +10,13 @@ Connect-AzAccount
 $manifestPath = '.\example.manifest.yaml'
 winget validate $manifestPath
 
-Add-WinGetManifest -SubscriptionName 'Zenme Azure 1' -FunctionName 'func-pawwinget-tm1' -Path $manifestPath
+Add-WinGetManifest -SubscriptionName 'Zenme Azure 1' -FunctionName 'func-jpvwinget9' -Path $manifestPath
 # =======
 # Usage
-# winget source add --name "ZenmePrivate" --arg "https://func-pawwinget-tm1.azurewebsites.net/api" --type "Microsoft.Rest"
+# =======
 
+winget source add --name 'ZenmePrivate' --arg 'https://apim-jpvwinget9.azure-api.net/winget' --type 'Microsoft.Rest'
 
-# Get-AzFunctionApp | Select-Object Name, ResourceGroupName
- 
-# $(Get-AzFunctionApp).Where({ $_.Name -eq 'func-jpvwinget3' }) | Select-Object Name, ResourceGroupName
+winget search 7zip --source ZenmePrivate
 
-# $FunctionApp = Get-AzFunctionApp -ResourceGroupName 'jpvwinget3-rg' -Name 'func-jpvwinget3'
-# $FunctionAppId = $FunctionApp.Id
-# $DefaultHostName = $FunctionApp.DefaultHostName
-# $FunctionKeyGet = (Invoke-AzResourceAction -ResourceId "$FunctionAppId/functions/ManifestGet" -Action listkeys -Force).default
+winget install --id '7zip.7zip' --exact --source ZenmePrivate

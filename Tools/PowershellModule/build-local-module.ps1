@@ -22,7 +22,7 @@ if (Test-Path (Join-Path $UserDotNetRoot 'dotnet.exe')) {
 
 Push-Location $RepositoryRoot
 try {
-    dotnet restore $SolutionPath --configfile $NuGetConfigPath
+    dotnet restore $SolutionPath --configfile $NuGetConfigPath "-p:RestoreSources=$RestoreSources" "-p:RestorePackagesPath=$RestorePackagesPath"
     if ($LASTEXITCODE -ne 0) {
         throw 'Failed to restore the WinGet REST source solution.'
     }
